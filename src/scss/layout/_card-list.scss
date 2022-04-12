@@ -1,0 +1,7 @@
+.card-list {
+  padding: 26px;
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - #{$navbar-height});
+}

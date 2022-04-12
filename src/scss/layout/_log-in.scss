@@ -1,0 +1,15 @@
+.log-in {
+  .input-wrapper {
+    width: 80%;
+  }
+
+  .button {
+    margin-top: 12px;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 24px;
+  }
+}

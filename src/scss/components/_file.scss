@@ -1,0 +1,13 @@
+.file {
+  &__title {
+    display: inline-block;
+    font-size: 14px;
+    color: rgba(black, 0.8);
+  }
+
+  &__button {
+    display: inline-block;
+    color: $color-main;
+    margin: 0 12px;
+  }
+}
