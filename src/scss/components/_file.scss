@@ -1,4 +1,7 @@
 .file {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
   &__title {
     display: inline-block;
     font-size: 14px;

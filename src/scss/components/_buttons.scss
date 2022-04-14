@@ -8,6 +8,10 @@
   cursor: pointer;
   transition: 0.4s;
 
+  &:disabled {
+    opacity: 0.3;
+  }
+
   &_theme {
     &_clear {
       color: $color-main;

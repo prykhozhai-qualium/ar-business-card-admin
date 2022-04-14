@@ -1,25 +1,23 @@
-.input{
+.input {
   background-color: transparent;
   border: 0;
   width: 100%;
   padding: 0 0 0 16px;
 
-  &:focus{
+  &:focus {
     border: none !important;
     box-shadow: none !important;
   }
-  
-  &-wrapper{
+
+  &-wrapper {
     display: flex;
     flex-wrap: nowrap;
     border-bottom: 1px solid rgba(black, 0.2);
     height: 40px;
     line-height: 40px;
-    padding: 0 16px;
-
   }
 
-  &-title{
+  &-title {
     white-space: nowrap;
     font-size: 14px;
   }
