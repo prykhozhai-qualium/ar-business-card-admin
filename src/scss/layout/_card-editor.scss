@@ -1,6 +1,46 @@
 .card-editor {
+  display: flex;
+  align-items: center;
+
+  &_size_large {
+    width: 500px !important;
+  }
+
+  & > .form__row {
+    width: 100%;
+
+    & > .form__col {
+      width: auto !important;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      flex-direction: column;
+
+      &_size_large {
+        width: 100% !important;
+        padding: 0 0 0 12px;
+      }
+    }
+  }
+
   .input-wrapper {
     width: 80%;
+    padding-left: 4px;
+  }
+
+  &__qr-code {
+    width: 150px;
+    height: 150px;
+    background-color: #000;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 0 0 12px 0;
+    box-shadow: 0 0 32px rgba(black, 0.3);
+
+    &_hidden {
+      opacity: 0;
+      position: absolute;
+    }
   }
 
   .file {

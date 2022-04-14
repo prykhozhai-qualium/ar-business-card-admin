@@ -10,4 +10,18 @@
     color: $color-error;
     margin-top: 8px;
   }
+
+  &__row {
+    display: flex;
+
+    button {
+      margin: 0 4px;
+    }
+  }
+
+  &__title {
+    font-size: 20px;
+    margin: 6px 0;
+    font-weight: bold;
+  }
 }

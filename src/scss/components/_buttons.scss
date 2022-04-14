@@ -18,6 +18,17 @@
         border: 2px solid $color-main !important;
         box-shadow: 0 0 4px rgba(black, 0.1) !important;
       }
+
+      &_error {
+        color: $color-error;
+        background-color: white;
+
+        &:focus,
+        &:hover {
+          border: 2px solid $color-error !important;
+          box-shadow: 0 0 4px rgba(black, 0.1) !important;
+        }
+      }
     }
   }
 
