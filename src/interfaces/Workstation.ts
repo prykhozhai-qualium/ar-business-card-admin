@@ -6,4 +6,7 @@ export default interface IWorkstationState {
     selected_card: any;
     active: boolean;
   };
+  card_list: {
+    list: any[],
+  },
 }

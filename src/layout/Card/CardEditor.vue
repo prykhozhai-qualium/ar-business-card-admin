@@ -11,11 +11,21 @@
         </div>
         <label class="input-wrapper">
           <div class="input-title">Name</div>
-          <input v-model="card.name" class="input" tabindex="1" type="text" />
+          <input
+            v-model="card.name.value"
+            class="input"
+            tabindex="1"
+            type="text"
+          />
         </label>
         <label class="input-wrapper">
           <div class="input-title">E-Mail</div>
-          <input v-model="card.email" class="input" tabindex="2" type="email" />
+          <input
+            v-model="card.email.value"
+            class="input"
+            tabindex="2"
+            type="email"
+          />
         </label>
         <FileLoader
           :title="'Upload VCF file'"
@@ -80,24 +90,29 @@
                 class="input"
                 tabindex="1"
                 type="text"
-                value="https://www.qualium-systems.com/"
+                :value="card.link"
               />
             </label>
             <label class="input-wrapper">
-              <div class="input-title">Name</div>
+              <div class="input-title">
+                Name
+                <span v-if="card.name.changed">*</span>
+              </div>
               <input
-                @input="card.$state.changed = true"
-                v-model="card.name"
+                @input="onInputChange('name')"
+                v-model="card.name.value"
                 class="input"
                 tabindex="1"
                 type="text"
               />
             </label>
             <label class="input-wrapper">
-              <div class="input-title">E-Mail</div>
+              <div class="input-title">
+                E-Mail <span v-if="card.email.changed">*</span>
+              </div>
               <input
-                @input="card.$state.changed = true"
-                v-model="card.email"
+                @input="onInputChange('email')"
+                v-model="card.email.value"
                 class="input"
                 tabindex="2"
                 type="email"
@@ -105,8 +120,8 @@
             </label>
             <FileLoader
               :title="
-                card.vcf && !card.$state.changed
-                  ? card.vcf.name
+                card.vcf.value && !card.$state.changed
+                  ? card.vcf.value.name
                   : 'Upload VCF file'
               "
               :onChange="onVCFFileChange"
@@ -117,7 +132,7 @@
         </div>
         <div class="form__row" style="">
           <button
-            @click="startCreatingCard"
+            @click="updateCard"
             type="button"
             class="button"
             tabindex="3"
@@ -126,11 +141,6 @@
             Update
           </button>
           <button
-            @click="
-              $store.commit('workstation/setCardEditorMode', {
-                mode: enums.CardEditorMode.CreatingSecondaryFiles,
-              })
-            "
             type="button"
             class="button button_theme_clear_error"
             tabindex="3"
@@ -162,22 +172,13 @@ export default Vue.extend({
     validation: {
       text: null as null | string,
     },
-    card: {
-      id: null as null | string,
-      name: "",
-      email: "",
-      vcf: null,
-      qrCode: null as null | Blob,
-      mind: null,
-      $state: {
-        changed: false,
-        updating: false,
-      },
-    },
   }),
   computed: {
     CardEditorMode(): CardEditorMode {
       return this.$store.state.workstation.card_editor.mode;
+    },
+    card() {
+      return this.$store.state.workstation.card_editor.selected_card;
     },
   },
   watch: {
@@ -192,6 +193,10 @@ export default Vue.extend({
     },
   },
   methods: {
+    onInputChange(input: string) {
+      (this.card as any)[input].changed = true;
+      this.card.$state.changed = true;
+    },
     createFormData() {},
     clearCardState() {
       this.card.$state.changed = false;
@@ -199,20 +204,21 @@ export default Vue.extend({
       this.validation.text = "";
     },
     onVCFFileChange(e: any) {
-      this.card.vcf = e.target.files[0];
+      this.card.vcf.value = e.target.files[0];
+      this.card.vcf.changed = true;
       this.card.$state.changed = true;
     },
     cancelCardEditor() {
       this.$store.commit("workstation/cancelCardEditor");
     },
-    startCreatingCard() {
-      if (!this.card.name) {
+    updateCard() {
+      if (!this.card.name.value) {
         this.validation.text = "The name field must be written";
         return;
       }
 
       if (
-        !String(this.card.email)
+        !String(this.card.email.value)
           .toLowerCase()
           .match(
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -222,13 +228,35 @@ export default Vue.extend({
         return;
       }
 
-      if (!this.card.vcf) {
+      this.validation.text = "";
+    },
+    startCreatingCard() {
+      if (!this.card.name.value) {
+        this.validation.text = "The name field must be written";
+        return;
+      }
+
+      if (
+        !String(this.card.email.value)
+          .toLowerCase()
+          .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          )
+      ) {
+        this.validation.text = "Email is not valid";
+        return;
+      }
+
+      if (!this.card.vcf.value) {
         this.validation.text = "Select vcf file";
         return;
       }
 
+      this.validation.text = "";
+
       this.$store.commit("workstation/setCardEditorMode", {
         mode: this.enums.CardEditorMode.CreatingSecondaryFiles,
+        save_card: true,
       });
     },
     generateQRCode(cb: any) {
@@ -253,12 +281,15 @@ export default Vue.extend({
             p.toFixed(2).toString() + "%";
         },
         on_compile: (buffer) => {
-          // console.log(buffer);
 
           this.clearCardState();
-
           this.$store.commit("workstation/setCardEditorMode", {
             mode: this.enums.CardEditorMode.Edit,
+            card: {
+              name: this.card.name.value,
+              email: this.card.email.value,
+              link: this.card.link,
+            },
           });
 
           this.$nextTick().then(() => {
@@ -268,6 +299,7 @@ export default Vue.extend({
       });
     },
     onCardCreated() {
+      this.card.vcf.value = null;
       this.qrCode = new QRCodeStyling(qrCodeOptions("svg") as any);
       this.qrCode?.append(this.$refs.qrCodeView as HTMLElement);
       this.qrCode._svgDrawingPromise?.finally(() => {
