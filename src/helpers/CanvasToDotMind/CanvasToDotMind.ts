@@ -17,8 +17,8 @@ export default ({
     var aLink = window.document.createElement("a");
     aLink.download = "targets.mind";
     aLink.href = window.URL.createObjectURL(blob);
-    aLink.click();
-    window.URL.revokeObjectURL(aLink.href);
+    // aLink.click();
+    // window.URL.revokeObjectURL(aLink.href);
   };
 
   const loadImage = async (file: File) => {

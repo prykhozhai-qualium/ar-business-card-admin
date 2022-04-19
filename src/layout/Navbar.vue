@@ -9,7 +9,7 @@
       >
         Create new
       </button>
-      <button type="button" class="button">Sign out</button>
+      <button @click="logOut" type="button" class="button">Sign out</button>
     </div>
   </div>
 </template>
@@ -30,6 +30,9 @@ export default Vue.extend({
         mode: this.enums.CardEditorMode.Create,
       });
     },
+    logOut(){
+      this.$store.dispatch("logOut");
+    }
   },
 });
 </script>
