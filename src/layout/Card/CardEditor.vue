@@ -144,6 +144,7 @@
             type="button"
             class="button button_theme_clear_error"
             tabindex="3"
+            @click="deleteCard"
           >
             Delete
           </button>
@@ -193,6 +194,10 @@ export default Vue.extend({
     },
   },
   methods: {
+    deleteCard(){
+      this.$store.commit("workstation/cancelCardEditor");
+      this.$store.dispatch("workstation/deleteCard", this.card.id);
+    },
     onInputChange(input: string) {
       (this.card as any)[input].changed = true;
       this.card.$state.changed = true;

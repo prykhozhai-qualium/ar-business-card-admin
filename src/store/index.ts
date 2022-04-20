@@ -38,7 +38,7 @@ export default new Vuex.Store({
       localStorage.removeItem("jwt");
 
       context.commit("updateAccessLevel");
-    }
+    },
   },
   modules: {
     workstation: Workstation,

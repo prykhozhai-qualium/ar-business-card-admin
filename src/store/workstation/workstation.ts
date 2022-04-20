@@ -1,77 +1,30 @@
 import IWorkstationState from "@/interfaces/Workstation";
 import { Module } from "vuex";
 import CardEditorMode from "@/enums/CardEditorMode";
-
-let getEmptyCard = (card?: any) => ({
-  id: null as null | string,
-  name: {
-    value: card && card.name ? card.name : "",
-    changed: false,
-  },
-  link: card && card.link ? card.link : "",
-  email: {
-    value: card && card.email ? card.email : "",
-    changed: false,
-  },
-  vcf: {
-    value: null,
-    changed: false,
-  },
-  qrCode: null as null | Blob,
-  mind: null,
-  $state: {
-    changed: false,
-    updating: false,
-  },
-});
+import Card from "@/templates/Card";
+import axios from "axios";
+import CardLink from "@/templates/CardLink";
 
 const Workstation: Module<IWorkstationState, any> = {
   namespaced: true,
   state: {
     card_editor: {
       mode: CardEditorMode.Create,
-      selected_card: getEmptyCard(),
+      selected_card: Card(),
       active: false,
     },
     card_list: {
-      list: [
-        {
-          id: 1,
-          name: "Name",
-          email: "email@gmail.com",
-          link: "https://www.qualium-systems.com/",
-          vcf: "#link",
-          qrCode: "#link",
-        },
-        {
-          id: 2,
-          name: "Name 1",
-          email: "email@gmail.com",
-          link: "https://www.qualium-systems.com/1",
-          vcf: "#link",
-          qrCode: "#link",
-        },
-        {
-          id: 3,
-          name: "Name 2",
-          email: "email@gmail.com",
-          link: "https://www.qualium-systems.com/2",
-          vcf: "#link",
-          qrCode: "#link",
-        },
-        {
-          id: 4,
-          name: "Name 3",
-          email: "email@gmail.com",
-          link: "https://www.qualium-systems.com/3",
-          vcf: "#link",
-          qrCode: "#link",
-        },
-      ],
+      list: [],
     },
   },
   getters: {},
   mutations: {
+    updateCardList(state, list: any[]) {
+      state.card_list.list = [];
+      list.forEach(element => {
+        state.card_list.list.push(CardLink(element))
+      });
+    },
     setCardEditorMode(
       state,
       {
@@ -85,7 +38,7 @@ const Workstation: Module<IWorkstationState, any> = {
       }
     ) {
       if (!save_card) {
-        Object.assign(state.card_editor.selected_card, getEmptyCard(card));
+        state.card_editor.selected_card = Card(card);
       }
       state.card_editor.active = true;
       state.card_editor.mode = mode;
@@ -94,7 +47,37 @@ const Workstation: Module<IWorkstationState, any> = {
       state.card_editor.active = false;
     },
   },
-  actions: {},
+  actions: {
+    async deleteCard(context, card_id){
+      let card = [];
+
+      let jwt = localStorage.getItem("jwt");
+
+      let response = await axios.delete("https://qr.qualium-systems.com/api/v1/users", {
+        params: {
+          users: [card_id],
+        },
+        headers: { "Authorization": `Bearer ${jwt}` },
+      });
+
+      context.dispatch("updateCardList");
+
+    },
+    async updateCardList(context) {
+      let card = [];
+
+      let jwt = localStorage.getItem("jwt");
+
+      let response = await axios.get("https://qr.qualium-systems.com/api/v1/users", {
+        params: {
+          limit: 100,
+        },
+        headers: { "Authorization": `Bearer ${jwt}` },
+      })
+
+      context.commit("updateCardList", response.data);
+    },
+  },
 };
 
 export default Workstation;

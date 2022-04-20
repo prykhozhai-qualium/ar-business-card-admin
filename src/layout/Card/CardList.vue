@@ -23,7 +23,15 @@ export default Vue.extend({
     },
     card_list(){
       return this.$store.state.workstation.card_list.list;
+    },
+  },
+  methods: {
+    async loadCards(){
+      this.$store.dispatch("workstation/updateCardList");
     }
   },
+  mounted(){
+    this.loadCards()
+  }
 });
 </script>
