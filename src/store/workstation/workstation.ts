@@ -5,6 +5,8 @@ import Card from "@/templates/Card";
 import axios from "axios";
 import CardLink from "@/templates/CardLink";
 
+import UserInstance from "@/services/UserInstance";
+
 const Workstation: Module<IWorkstationState, any> = {
   namespaced: true,
   state: {
@@ -53,11 +55,14 @@ const Workstation: Module<IWorkstationState, any> = {
 
       let jwt = localStorage.getItem("jwt");
 
-      let response = await axios.delete("https://qr.qualium-systems.com/api/v1/users", {
+      if(!jwt){
+        return;
+      }
+
+      let response = await UserInstance(jwt).delete("users", {
         params: {
           users: [card_id],
         },
-        headers: { "Authorization": `Bearer ${jwt}` },
       });
 
       context.dispatch("updateCardList");
@@ -68,11 +73,14 @@ const Workstation: Module<IWorkstationState, any> = {
 
       let jwt = localStorage.getItem("jwt");
 
-      let response = await axios.get("https://qr.qualium-systems.com/api/v1/users", {
+      if(!jwt){
+        return;
+      }
+
+      let response = await UserInstance(jwt).get("users", {
         params: {
           limit: 100,
         },
-        headers: { "Authorization": `Bearer ${jwt}` },
       })
 
       context.commit("updateCardList", response.data);

@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card__col card__col_left">
       <div class="card__title">{{ card.name }}</div>
-      <div class="card__subtitle">user-email@qualium-system.com</div>
+      <div class="card__subtitle">{{ card.email }}</div>
     </div>
     <div class="card__col card__col_right">
       <div class="card__icon-button" @click="openCard(card)">
