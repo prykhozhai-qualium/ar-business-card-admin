@@ -14,9 +14,9 @@ export default ({
   const download = (buffer: any) => {
     on_compile(buffer);
     var blob = new Blob([buffer]);
-    var aLink = window.document.createElement("a");
-    aLink.download = "targets.mind";
-    aLink.href = window.URL.createObjectURL(blob);
+    // var aLink = window.document.createElement("a");
+    // aLink.download = "targets.mind";
+    // aLink.href = window.URL.createObjectURL(blob);
     // aLink.click();
     // window.URL.revokeObjectURL(aLink.href);
   };

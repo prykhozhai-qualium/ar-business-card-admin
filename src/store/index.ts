@@ -10,7 +10,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    access_level: AccessLevel.NotAuthorized,
+    access_level: AccessLevel.Undefined,
   },
   mutations: {
     updateAccessLevel(state){

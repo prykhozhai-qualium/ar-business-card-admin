@@ -136,9 +136,10 @@
             type="button"
             class="button"
             tabindex="3"
-            :disabled="!card.$state.changed"
+            :disabled="(!card.$state.changed || card.$state.updating)"
           >
-            Update
+            <template v-if="card.$state.updating"> Updating </template>
+            <template v-else> Update </template>
           </button>
           <button
             type="button"
@@ -187,14 +188,15 @@ export default Vue.extend({
       if (
         this.enums.CardEditorMode.CreatingSecondaryFiles == this.CardEditorMode
       ) {
-        this.$nextTick().then(() => {
-          this.generateQRCode(this.generateMindMap);
+        this.$nextTick().then(async () => {
+          await this.generateQRCode(this.card.link);
+          this.generateMindMap();
         });
       }
     },
   },
   methods: {
-    deleteCard(){
+    deleteCard() {
       this.$store.commit("workstation/cancelCardEditor");
       this.$store.dispatch("workstation/deleteCard", this.card.id);
     },
@@ -202,7 +204,6 @@ export default Vue.extend({
       (this.card as any)[input].changed = true;
       this.card.$state.changed = true;
     },
-    createFormData() {},
     clearCardState() {
       this.card.$state.changed = false;
       this.card.$state.updating = false;
@@ -216,13 +217,14 @@ export default Vue.extend({
     cancelCardEditor() {
       this.$store.commit("workstation/cancelCardEditor");
     },
-    updateCard() {
-      if (!this.card.name.value) {
+    async updateCard() {
+      if (!this.card.name.changed && !this.card.name.value) {
         this.validation.text = "The name field must be written";
         return;
       }
 
       if (
+        this.card.email.changed &&
         !String(this.card.email.value)
           .toLowerCase()
           .match(
@@ -233,9 +235,41 @@ export default Vue.extend({
         return;
       }
 
-      this.validation.text = "";
+      this.card.$state.updating = true;
+
+      let fields_to_update: any = {};
+
+      if (this.card.name.changed) {
+        fields_to_update.name = this.card.name.value;
+      }
+
+      if (this.card.email.changed) {
+        fields_to_update.email = this.card.email.value;
+      }
+
+      if (this.card.vcf.changed) {
+        fields_to_update.vcf = this.card.vcf.value;
+      }
+
+      await this.$store.dispatch(
+        "workstation/updateUserCard",
+        Object.assign(
+          {
+            id: this.card.id,
+          },
+          fields_to_update
+        )
+      );
+
+      await this.$store.dispatch("workstation/updateCardList");
+
+      this.card.name.changed = false;
+      this.card.email.changed = false;
+      this.card.vcf.changed = false;
+
+      this.clearCardState();
     },
-    startCreatingCard() {
+    async startCreatingCard() {
       if (!this.card.name.value) {
         this.validation.text = "The name field must be written";
         return;
@@ -259,22 +293,22 @@ export default Vue.extend({
 
       this.validation.text = "";
 
+      await this.$store.dispatch("workstation/createUserCard", {
+        name: this.card.name.value,
+        email: this.card.email.value,
+        vcf: this.card.vcf.value,
+      });
       this.$store.commit("workstation/setCardEditorMode", {
         mode: this.enums.CardEditorMode.CreatingSecondaryFiles,
         save_card: true,
       });
     },
-    generateQRCode(cb: any) {
-      const qrCode = new QRCodeStyling(qrCodeOptions("canvas") as any);
+    async generateQRCode(link: string) {
+      const qrCode = new QRCodeStyling(qrCodeOptions("canvas", link) as any);
 
       qrCode.append(this.$refs.qrCode as HTMLElement);
-      qrCode._canvasDrawingPromise?.finally(() => {
-        cb();
-      });
-
+      await qrCode._canvasDrawingPromise;
       this.qrCode = qrCode;
-
-      // qrCode.download({ name: "qrCode", extension: "svg" });
     },
     async generateMindMap() {
       CanvasToDotMind({
@@ -285,27 +319,22 @@ export default Vue.extend({
           (this.$refs.qrCodeProgress as HTMLElement).innerHTML =
             p.toFixed(2).toString() + "%";
         },
-        on_compile: (buffer) => {
+        on_compile: async (buffer) => {
+          this.card.mind = buffer;
 
-          this.clearCardState();
-          this.$store.commit("workstation/setCardEditorMode", {
-            mode: this.enums.CardEditorMode.Edit,
-            card: {
-              name: this.card.name.value,
-              email: this.card.email.value,
-              link: this.card.link,
-            },
+          await this.$store.dispatch("workstation/updateUserCard", {
+            id: this.card.id,
+            mind: buffer,
           });
 
-          this.$nextTick().then(() => {
-            this.onCardCreated();
-          });
+          this.$store.commit("workstation/cancelCardEditor");
         },
       });
     },
-    onCardCreated() {
-      this.card.vcf.value = null;
-      this.qrCode = new QRCodeStyling(qrCodeOptions("svg") as any);
+    showQRCode() {
+      this.qrCode = new QRCodeStyling(
+        qrCodeOptions("svg", this.card.link) as any
+      );
       this.qrCode?.append(this.$refs.qrCodeView as HTMLElement);
       this.qrCode._svgDrawingPromise?.finally(() => {
         let svg_text = `<svg class="logo-image" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" >
@@ -332,6 +361,10 @@ export default Vue.extend({
       });
     },
   },
-  mounted() {},
+  mounted() {
+    if (this.enums.CardEditorMode.Edit == this.CardEditorMode) {
+      this.showQRCode();
+    }
+  },
 });
 </script>

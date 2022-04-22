@@ -1,4 +1,5 @@
 enum EAccessLevel {
+  Undefined,
   NotAuthorized,
   Authorized,
 }

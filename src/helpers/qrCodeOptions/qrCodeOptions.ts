@@ -1,9 +1,9 @@
-const qrCodeOptions = (type: any) => {
+const qrCodeOptions = (type: any, link: string) => {
   return {
     width: 150,
     height: 150,
     type,
-    data: "https://www.qualium-systems.com/",
+    data: link,
     image: "./assets/logo.svg",
     dotsOptions: {
       color: "#000",

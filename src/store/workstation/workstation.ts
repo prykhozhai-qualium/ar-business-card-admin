@@ -4,6 +4,7 @@ import CardEditorMode from "@/enums/CardEditorMode";
 import Card from "@/templates/Card";
 import axios from "axios";
 import CardLink from "@/templates/CardLink";
+import user_page_path from "@/computed/user_page_path";
 
 import UserInstance from "@/services/UserInstance";
 
@@ -50,12 +51,65 @@ const Workstation: Module<IWorkstationState, any> = {
     },
   },
   actions: {
-    async deleteCard(context, card_id){
+    async updateUserCard(context, { id, email, name, mind, vcf }) {
+      let jwt = localStorage.getItem("jwt");
+
+      if (!jwt) {
+        return;
+      }
+
+      let user_card = new FormData()
+
+      if (name)
+        user_card.append("username", name);
+
+      if (email)
+        user_card.append("email", email);
+
+      if (vcf)
+        user_card.append("vcf", await vcf.arrayBuffer());
+
+      if (mind)
+        user_card.append("target", new File(mind, "target.mind"));
+
+      await UserInstance(jwt).patch("users/" + id, user_card, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    async createUserCard(context, card: any) {
+      let jwt = localStorage.getItem("jwt");
+
+      if (!jwt) {
+        return;
+      }
+
+      let user_card = new FormData()
+
+      user_card.append("username", card.name);
+      user_card.append("email", card.email);
+      user_card.append("vcf", card.vcf);
+
+      console.log(card)
+
+      let response = await UserInstance(jwt).post("users", user_card, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      context.state.card_editor.selected_card.id = response.data.id;
+      context.state.card_editor.selected_card.link = user_page_path(response.data.id)
+
+      context.dispatch("updateCardList");
+    },
+    async deleteCard(context, card_id) {
       let card = [];
 
       let jwt = localStorage.getItem("jwt");
 
-      if(!jwt){
+      if (!jwt) {
         return;
       }
 
@@ -73,7 +127,7 @@ const Workstation: Module<IWorkstationState, any> = {
 
       let jwt = localStorage.getItem("jwt");
 
-      if(!jwt){
+      if (!jwt) {
         return;
       }
 

@@ -28,10 +28,6 @@ export default Vue.extend({
   },
   mounted() {
     this.$store.commit("updateAccessLevel");
-
-    if (this.$store.state.access_level == AccessLevel.Authorized) {
-      this.$router.push({name: "Home"});
-    }
   },
 });
 </script>
