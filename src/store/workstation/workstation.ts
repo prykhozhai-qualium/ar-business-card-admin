@@ -5,8 +5,17 @@ import Card from "@/templates/Card";
 import axios from "axios";
 import CardLink from "@/templates/CardLink";
 import user_page_path from "@/computed/user_page_path";
+import AccessLevel from "@/enums/AccessLevel";
 
 import UserInstance from "@/services/UserInstance";
+
+let request_wrapper = async (request: any) => {
+  request.catch((e: any) => {
+    alert("Error: " + e);
+  })
+
+  return await request;
+}
 
 const Workstation: Module<IWorkstationState, any> = {
   namespaced: true,
@@ -55,6 +64,7 @@ const Workstation: Module<IWorkstationState, any> = {
       let jwt = localStorage.getItem("jwt");
 
       if (!jwt) {
+        context.rootState.access_level = AccessLevel.NotAuthorized;
         return;
       }
 
@@ -72,16 +82,17 @@ const Workstation: Module<IWorkstationState, any> = {
       if (mind)
         user_card.append("target", new File(mind, "target.mind"));
 
-      await UserInstance(jwt).patch("users/" + id, user_card, {
+      await request_wrapper(UserInstance(jwt).patch("users/" + id, user_card, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+      }));
     },
     async createUserCard(context, card: any) {
       let jwt = localStorage.getItem("jwt");
 
       if (!jwt) {
+        context.rootState.access_level = AccessLevel.NotAuthorized;
         return;
       }
 
@@ -93,11 +104,11 @@ const Workstation: Module<IWorkstationState, any> = {
 
       console.log(card)
 
-      let response = await UserInstance(jwt).post("users", user_card, {
+      let response = await request_wrapper(UserInstance(jwt).post("users", user_card, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+      }));
 
       context.state.card_editor.selected_card.id = response.data.id;
       context.state.card_editor.selected_card.link = user_page_path(response.data.id)
@@ -110,14 +121,15 @@ const Workstation: Module<IWorkstationState, any> = {
       let jwt = localStorage.getItem("jwt");
 
       if (!jwt) {
+        context.rootState.access_level = AccessLevel.NotAuthorized;
         return;
       }
 
-      let response = await UserInstance(jwt).delete("users", {
+      let response = await request_wrapper(UserInstance(jwt).delete("users", {
         params: {
           users: [card_id],
         },
-      });
+      }));
 
       context.dispatch("updateCardList");
 
@@ -128,14 +140,15 @@ const Workstation: Module<IWorkstationState, any> = {
       let jwt = localStorage.getItem("jwt");
 
       if (!jwt) {
+        context.rootState.access_level = AccessLevel.NotAuthorized;
         return;
       }
 
-      let response = await UserInstance(jwt).get("users", {
+      let response = await request_wrapper(UserInstance(jwt).get("users", {
         params: {
           limit: 100,
         },
-      })
+      }));
 
       context.commit("updateCardList", response.data);
     },
