@@ -79,8 +79,9 @@ const Workstation: Module<IWorkstationState, any> = {
       if (vcf)
         user_card.append("vcf", await vcf.arrayBuffer());
 
-      if (mind)
-        user_card.append("target", new File(mind, "target.mind"));
+      if (mind) {
+        user_card.append("target", new File([new Blob([mind])], "target.main") as any);
+      }
 
       await request_wrapper(UserInstance(jwt).patch("users/" + id, user_card, {
         headers: {
@@ -101,8 +102,6 @@ const Workstation: Module<IWorkstationState, any> = {
       user_card.append("username", card.name);
       user_card.append("email", card.email);
       user_card.append("vcf", card.vcf);
-
-      console.log(card)
 
       let response = await request_wrapper(UserInstance(jwt).post("users", user_card, {
         headers: {
